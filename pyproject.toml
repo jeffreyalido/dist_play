@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "dist-play"
+version = "0.1.0"
+description = ""
+authors = ["Jeffrey Alido <jalido@bu.edu>"]
+readme = "README.md"
+packages = [{include = "dist_play"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+torch = "^2.3.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
