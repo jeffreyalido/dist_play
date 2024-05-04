@@ -8,7 +8,8 @@ packages = [{include = "dist_play"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-torch = "^2.3.0"
+torch = "2.2.2" # problem with cudnn in 2.3.0. https://github.com/pytorch/pytorch/issues/121834
+torchvision = "^0.17.2"
 
 
 [build-system]
