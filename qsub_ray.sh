@@ -46,6 +46,36 @@ echo "Master IP file found. Proceeding with training."
 echo "Master IP: $(cat $IP_FILE)"
 echo "Master Port: 12355"
 
-
 source .venv/bin/activate
-python tests/main.py --rank $SGE_TASK_ID --world_size 2
+
+# ray stuff
+ray stop
+ray disable-usage-stats
+RAY_DEDUP_LOGS=0 # https://discuss.ray.io/t/how-do-i-disable-repeated-3x-across-cluster/11072/5
+
+START_TIME=$(date +%s)
+
+# Initialize Ray - replace 'node1' with the actual hostname of your head node if needed
+if [ $SGE_TASK_ID -eq 1 ]; then
+    ray start --head --port=6379 --num-gpus=1
+    echo "Ray head node started on $(hostname)"
+else
+    MASTER_IP=$(cat $IP_FILE)
+    ray start --address=$MASTER_IP:6379 --num-gpus=1
+    echo "Connected to Ray head node at $MASTER_IP"
+fi
+
+# Execute the Python script adapted for Ray
+python tests/main_ray.py --num_workers 2
+
+END_TIME=$(date +%s)
+
+ray stop
+
+# Calculate the duration
+DURATION=$((END_TIME - START_TIME))
+
+echo "=========================================================="
+echo "End date : $(date)"
+echo "Execution time: $DURATION seconds"
+echo "=========================================================="

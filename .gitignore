@@ -1,1 +1,5 @@
 data/
+
+# SGE logs
+qsub_ddp.sh.o*
+qsub_ray.sh.o*

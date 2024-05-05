@@ -43,7 +43,7 @@ def train(rank, world_size, ip_file: str):
 
     optimizer = torch.optim.SGD(ddp_model.parameters(), lr=0.01)
 
-    for epoch in range(10000):  # loop over the dataset multiple times
+    for epoch in range(10):  # loop over the dataset multiple times
         sampler.set_epoch(epoch)
         for _, data in enumerate(dataloader, 0):
             inputs, labels = data[0].to(device), data[1].to(device)
