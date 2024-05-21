@@ -12,6 +12,7 @@ torch = "2.2.2" # problem with cudnn in 2.3.0. https://github.com/pytorch/pytorc
 torchvision = "^0.17.2"
 ray = {extras = ["train"], version = "^2.20.0"}
 tensorboard = "^2.16.2"
+wandb = "^0.17.0"
 
 
 [build-system]
