@@ -53,7 +53,7 @@ def read_ip_address(file_path):
 
 
 if __name__ == "__main__":
-    ip_file_path = "dist_play/master_ip.txt"
+    ip_file_path = "networking/master_ip.txt"
     ray_head_node_address = read_ip_address(ip_file_path)
 
     ray.init(address=f"{ray_head_node_address}:6379")

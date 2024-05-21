@@ -74,4 +74,4 @@ if __name__ == "__main__":
     print("Rank:", args.rank)
 
     print("starting training")
-    train(args.rank, args.world_size, ip_file="dist_play/master_ip.txt")
+    train(args.rank, args.world_size, ip_file="networking/master_ip.txt")
