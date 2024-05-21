@@ -39,12 +39,12 @@ echo "=========================================================="
 module load python3/3.10.12
 
 # For networking stuff
-IP_FILE="dist_play/master_ip.txt"
+IP_FILE="networking/master_ip.txt"
 
 # Check if this is the first task
 if [ \$SGE_TASK_ID -eq 1 ]; then
   rm \$IP_FILE
-  python dist_play/head_ip.py \$IP_FILE
+  python networking/head_ip.py \$IP_FILE
   echo "IP address set by task \$SGE_TASK_ID"
 fi
 
