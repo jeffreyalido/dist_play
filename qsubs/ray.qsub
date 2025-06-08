@@ -17,6 +17,7 @@
 
 # Specify the number of GPUs
 #$ -l gpus=1
+#$ -cwd
 
 echo "=========================================================="
 echo "Start date : $(date)"

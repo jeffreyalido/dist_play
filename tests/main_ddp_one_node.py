@@ -7,42 +7,33 @@ from torchvision.models import resnet34
 from torch.utils.data import DataLoader, DistributedSampler
 from torchvision.datasets import CIFAR10
 from torchvision.transforms import Compose, ToTensor, Normalize
-import argparse
+import torch.multiprocessing as mp
 import wandb
 
 
-def setup(rank, world_size, ip_file: str):
-    print("hey")
-    with open(ip_file, 'r') as file:
-        master_addr = file.read().strip()
-
-    os.environ['MASTER_ADDR'] = master_addr
+def setup(rank, world_size):
+    os.environ['MASTER_ADDR'] = '127.0.0.1'
     os.environ['MASTER_PORT'] = '12355'
-    dist.init_process_group(backend="nccl", rank=rank, world_size=world_size)
-    print(f"Rank {rank} initialized with master at {master_addr}")
-    dist.barrier()
+    dist.init_process_group(backend='nccl', rank=rank, world_size=world_size)
+    print(f"Rank {rank} initialized.")
 
 
 def cleanup():
     dist.destroy_process_group()
 
+def train(rank, world_size):
+    print(f"Starting rank {rank} on GPU {rank}")
+    setup(rank, world_size)
 
-def train(rank, world_size, ip_file: str):
-    rank = int(rank) - 1
-    world_size = int(world_size)
+    torch.cuda.set_device(rank)
+    device = torch.device("cuda", rank)
 
     if rank == 0:
         os.environ["WANDB__SERVICE_WAIT"] = "200"
         wandb.init(project="dist_play", entity="cisl-bu")
 
-    setup(rank, world_size, ip_file=ip_file)
-
-    assert torch.cuda.device_count() == 1
-    local_rank = 0
-    device = torch.device("cuda", local_rank)
-
     model = resnet34().to(device)
-    model = DDP(model, device_ids=[local_rank])
+    model = DDP(model, device_ids=[rank])
 
     dataset = CIFAR10(root='data', train=True, download=True,
                       transform=Compose([ToTensor(), Normalize((0.5,), (0.5,))]))
@@ -69,27 +60,20 @@ def train(rank, world_size, ip_file: str):
         if rank == 0:
             wandb.log({"total_loss": total_loss})
 
-    end_time = time.time()
-    duration = end_time - start_time
+    duration = time.time() - start_time
 
     if rank == 0:
-        with open("runtime_log_multinode.txt", "a") as f:
+        with open("runtime_log_singlenode.txt", "a") as f:
             f.write(f"Total training time: {duration:.2f} seconds\n")
 
     cleanup()
 
 
+def main():
+    world_size = torch.cuda.device_count()
+    print(f"Launching training on {world_size} GPUs")
+    mp.spawn(train, args=(world_size,), nprocs=world_size, join=True)
+
+
 if __name__ == "__main__":
-    print("entering main")
-    print("CUDA_VISIBLE_DEVICES:", os.environ.get("CUDA_VISIBLE_DEVICES"))
-    print("Available GPUs:", torch.cuda.device_count())
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--rank')
-    parser.add_argument('--world_size')
-    args = parser.parse_args()
-
-    print("Rank:", args.rank)
-    print("starting training")
-
-    train(args.rank, args.world_size, ip_file="networking/master_ip.txt")
+    main()

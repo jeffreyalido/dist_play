@@ -13,9 +13,10 @@
 #$ -pe omp 1
 
 # Specify the array job range
-#$ -t 1-2
+#$ -t 1-4
 
 # Specify the number of GPUs
+#$ -l gpu_c=8.0
 #$ -l gpus=1
 
 echo "=========================================================="
@@ -42,15 +43,22 @@ while [ ! -f $IP_FILE ]; do
   sleep 3
 done
 
-echo "Master IP file found. Proceeding with training."
-echo "Master IP: $(cat $IP_FILE)"
+echo "Master IP file found. Proceeding with python script."
+# echo "Master IP: $(cat $IP_FILE)"
+cat $IP_FILE
+nc -zv $(cat $IP_FILE) 12355
 echo "Master Port: 12355"
 
 source .venv/bin/activate
 
 START_TIME=$(date +%s)
 
-python tests/main_ddp.py --rank $SGE_TASK_ID --world_size 2
+export NCCL_DEBUG=INFO
+export NCCL_DEBUG_SUBSYS=INIT
+export NCCL_IB_DISABLE=1
+
+
+python tests/main_ddp.py --rank $SGE_TASK_ID --world_size 4
 
 END_TIME=$(date +%s)
 
