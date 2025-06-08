@@ -1,4 +1,4 @@
-# just playing around with distributed stuff for torch
+# just playing around with distributed stuff for torch on BU's cluster
 
 ##  notes for torch's `DistributedDataParallel` 
 
